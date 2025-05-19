@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registro de Usuario</title>
+    <style>
+        /* Tu CSS original intacto */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            padding: 0 20px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .form-container h2 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-container label {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-container input,
+        .form-container select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .form-container p {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .form-container p a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .form-container p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="form-container">
+        <h2>Registro de Usuario</h2>
+
+        <form id="registroForm">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" placeholder="Ingrese su nombre" required />
+
+            <label for="apellido">Apellido</label>
+            <input type="text" id="apellido" name="apellido" placeholder="Ingrese su apellido" required />
+
+            <label for="edad">Edad</label>
+            <input type="number" id="edad" name="edad" placeholder="Ingrese su edad" required />
+
+            <label for="condicion">Condición</label>
+            <select id="condicion" name="condicion" required>
+                <option value="" disabled selected>Seleccione una condición</option>
+                <option value="Esguince de tobillo">Esguince de tobillo</option>
+                <option value="Tendinitis">Tendinitis</option>
+            </select>
+
+            <label for="dni">DNI</label>
+            <input type="text" id="dni" name="dni" placeholder="Ingrese su DNI" required />
+
+            <label for="username">Usuario</label>
+            <input type="text" id="username" name="username" placeholder="Ingrese su usuario" required />
+
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="Ingrese su contraseña" required />
+
+            <button type="submit">Registrarse</button>
+        </form>
+
+        <p>¿Ya tienes una cuenta? <a href="/login">Iniciar sesión</a></p>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('registroForm');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const data = new FormData(form);
+
+        fetch('/registro', {
+            method: 'POST',
+            body: data
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('¡Usuario registrado exitosamente!');
+                form.reset();
+                // Redirigir a login después del alert
+                window.location.href = "/login";
+            } else {
+                response.text().then(text => alert('Error: ' + text));
+            }
+        })
+        .catch(() => {
+            alert('Error en la conexión');
+        });
+    });
+</script>
+
+</body>
+
+</html>

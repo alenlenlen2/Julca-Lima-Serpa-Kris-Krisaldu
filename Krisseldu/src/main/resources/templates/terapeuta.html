@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vista del Terapeuta</title>
+    <style>
+        /* Reset y base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0 20px;
+        }
+
+        /* Encabezado */
+        .header {
+            background-color: #ffffff;
+            padding: 20px 50px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo h1 {
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #4CAF50;
+        }
+
+        /* Info usuario */
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            font-size: 18px;
+            color: #333;
+        }
+
+        /* Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: transparent;
+            border: none;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #fff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-weight: normal;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Contenedor tabla */
+        .table-container {
+            width: 80%;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        /* Tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 600px;
+        }
+
+        thead {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* Links en celdas */
+        td a {
+            text-decoration: none;
+            color: #4CAF50;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        td a:hover {
+            color: #357a38;
+            text-decoration: underline;
+        }
+
+        a.no-underline {
+            text-decoration: none !important;
+        }
+
+        a.no-underline:hover {
+            text-decoration: none !important;
+            color: #2a662a;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Barra de navegación -->
+<!-- Barra de navegación -->
+<header class="header" role="banner">
+    <div class="logo" aria-label="Logo">
+        <h1>Krisaldu</h1>
+    </div>
+    <div class="user-info" aria-label="Información del usuario">
+        <span>Hola, <span th:text="${nombreTerapeuta}">Terapeuta</span></span>
+        <div class="dropdown">
+            <button class="dropbtn" aria-haspopup="true" aria-expanded="false" aria-controls="user-menu">▼</button>
+            <div class="dropdown-content" id="user-menu" role="menu" aria-hidden="true">
+                <!-- Enlace de Cerrar Sesión -->
+                <a href="#" id="logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Tabla pacientes -->
+<div class="table-container" role="main">
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Usuario</th>
+            <th scope="col">Condición</th>
+            <th scope="col">Edad</th>
+            <th scope="col">Horarios</th>
+            <th scope="col">Asistencia</th>
+            <th scope="col">Video</th>
+            <th scope="col">Ver Paciente</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="paciente : ${pacientes}">
+            <td th:text="${paciente.nombre}">Nombre</td>
+            <td th:text="${paciente.condicion}">Condición</td>
+            <td th:text="${paciente.edad}">Edad</td>
+            <td th:text="${paciente.horarios}">Horarios</td>
+            <td th:text="${paciente.asistencia}">Asistencia</td>
+            <td th:text="${paciente.video}">Video</td>
+            <td><a th:href="@{/verPaciente/{id}(id=${paciente.id})}" class="no-underline">Ver Paciente</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Mejorar accesibilidad para menú desplegable
+    const dropbtn = document.querySelector('.dropbtn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropbtn.addEventListener('click', () => {
+        const expanded = dropbtn.getAttribute('aria-expanded') === 'true';
+        dropbtn.setAttribute('aria-expanded', String(!expanded));
+        dropdownContent.style.display = expanded ? 'none' : 'block';
+        dropdownContent.setAttribute('aria-hidden', String(expanded));
+    });
+    // Funcionalidad para cerrar sesión
+    document.getElementById('logout').addEventListener('click', function () {
+        alert("Cerrando sesión...");
+        window.location.href = "/login";  // Cambia esta ruta con la correcta si es necesario
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!dropbtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+            dropbtn.setAttribute('aria-expanded', 'false');
+            dropdownContent.style.display = 'none';
+            dropdownContent.setAttribute('aria-hidden', 'true');
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Asistencias</title>
+    <style>
+        /* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    padding: 0 20px;
+}
+
+/* Header y Navbar */
+.header {
+    background-color: #ffffff;
+    padding: 20px 50px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo h1 {
+    font-size: 28px;
+    color: #4CAF50; /* Krisaldu en verde */
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.navbar-items {
+    display: flex;
+}
+
+.navbar-item {
+    margin-right: 25px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.navbar-item:hover {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+#username {
+    margin-right: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+.notification-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background-color: transparent;
+    border: none;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Contenedor de ejercicios */
+.exercise-card {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.exercise-info {
+    flex: 1;
+    margin-left: 20px;
+}
+
+.exercise-info h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.exercise-info p {
+    font-size: 16px;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.exercise-info .hours {
+    font-size: 14px;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Botones */
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #45a049;
+}
+
+/* Estado */
+.status {
+    font-size: 14px;
+    color: #4CAF50;
+    font-weight: bold;
+    background-color: #e8f5e9;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Video recording container y controles */
+.video-recording-container {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.video-recording-container h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.video-recording-box {
+    width: 80%;
+    height: 300px;
+    margin: 0 auto;
+    background-color: #000;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    color: white;
+    font-weight: 600;
+}
+
+.recording-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: rgba(230, 0, 0, 0.8);
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: white;
+    user-select: none;
+}
+
+button.record-button,
+button.pause-button,
+button.stop-button,
+button.resume-button {
+    position: absolute;
+    bottom: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button.record-button:hover,
+button.pause-button:hover,
+button.stop-button:hover,
+button.resume-button:hover {
+    background-color: #45a049;
+}
+
+button.record-button {
+    left: 20%;
+}
+
+button.pause-button {
+    left: 40%;
+    display: none;
+}
+
+button.resume-button {
+    left: 40%;
+    display: none;
+}
+
+button.stop-button {
+    left: 60%;
+    display: none;
+}
+
+#sendButton {
+    margin-top: 20px;
+    padding: 12px 28px;
+    font-size: 18px;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: none;
+    transition: background-color 0.3s ease;
+}
+
+#sendButton:hover {
+    background-color: #45a049;
+}
+
+.alert {
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px;
+    margin-top: 30px;
+    border-radius: 5px;
+    display: none;
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+    </style>
+</head>
+
+<body>
+<header class="header">
+    <div class="navbar">
+        <div class="logo">
+            <h1>Krisaldu</h1>
+        </div>
+        <div class="navbar-items">
+            <a href="/home" class="navbar-item">Inicio</a>
+            <a href="/ejercicios" class="navbar-item">Ejercicios</a>
+            <a href="/asistencias" class="navbar-item">Asistencias</a>
+        </div>
+        <div class="user-info">
+            <span id="username">Hola, <span th:text="${username}">Usuario</span></span>
+            <img src="images/notificacion.png" alt="Notificaciones" class="notification-icon" />            <div class="dropdown">
+            <button class="dropbtn">▼</button>
+            <div class="dropdown-content">
+                <a href="#" id="logout">Cerrar Sesión</a>
+            </div>
+        </div>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="video-recording-container">
+        <h3>Graba tu rutina</h3>
+        <div class="video-recording-box">
+            <p>Tu video aparecerá aquí</p>
+            <span class="recording-status" id="recordingStatus">No Grabando</span>
+
+            <button class="record-button" id="recordButton" onclick="startRecording()">Iniciar Grabación</button>
+            <button class="pause-button" id="pauseButton" onclick="pauseRecording()">Pausar</button>
+            <button class="resume-button" id="resumeButton" onclick="resumeRecording()">Reanudar</button>
+            <button class="stop-button" id="stopButton" onclick="stopRecording()">Parar</button>
+        </div>
+
+        <form id="finalizarForm" method="GET" action="/finalizarEjercicio">
+            <input type="hidden" name="ejercicioId" id="ejercicioId" th:value="${ejercicioId}" />
+            <button type="submit" id="sendButton">Enviar Rutina</button>
+        </form>
+
+        <div class="alert" id="alertBox">¡Se registró tu rutina correctamente!</div>
+    </section>
+</main>
+
+<script>
+    let isRecording = false;
+    let isPaused = false;
+
+    function startRecording() {
+        isRecording = true;
+        isPaused = false;
+        document.getElementById('recordButton').style.display = "none";
+        document.getElementById('pauseButton').style.display = "inline-block";
+        document.getElementById('stopButton').style.display = "inline-block";
+        document.getElementById('recordingStatus').textContent = "Grabando";
+        document.getElementById('recordingStatus').style.backgroundColor = "#e60000";
+
+        alert("La grabación ha comenzado.");
+    }
+
+    function pauseRecording() {
+        isPaused = true;
+        document.getElementById('pauseButton').style.display = "none";
+        document.getElementById('resumeButton').style.display = "inline-block";
+
+        alert("La grabación ha sido pausada.");
+    }
+
+    function resumeRecording() {
+        isPaused = false;
+        document.getElementById('pauseButton').style.display = "inline-block";
+        document.getElementById('resumeButton').style.display = "none";
+
+        alert("La grabación ha sido reanudada.");
+    }
+
+    function stopRecording() {
+        isRecording = false;
+        document.getElementById('stopButton').style.display = "none";
+        document.getElementById('sendButton').style.display = "inline-block";
+        document.getElementById('pauseButton').style.display = "none";
+        document.getElementById('resumeButton').style.display = "none";
+
+        document.getElementById('recordingStatus').style.display = "none";
+    }
+
+    document.getElementById('finalizarForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        fetch(this.action + '?' + new URLSearchParams(new FormData(this)), {
+            method: 'GET'
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Rutina enviada exitosamente.');
+                window.location.href = "/ejercicios";
+            } else {
+                alert('Error al enviar la rutina.');
+            }
+        })
+        .catch(() => {
+            alert('Error en la conexión.');
+        });
+    });
+
+    document.getElementById('logout').addEventListener('click', function () {
+        alert("Cerrando sesión...");
+        window.location.href = "/login";
+    });
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Iniciar sesión</title>
+    <style>
+        /* (igual tus estilos actuales) */
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;
+        }
+        .login-container {
+            display: flex; justify-content: center; align-items: center; width: 100%;
+        }
+        .login-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            border: 2px solid #4CAF50;
+        }
+        .avatar img {
+            width: 60px; height: 60px; border-radius: 50%; margin-bottom: 20px;
+        }
+        input {
+            width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; font-size: 16px;
+        }
+        button {
+            width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .forgot-password {
+            margin-top: 10px; font-size: 12px;
+        }
+        .forgot-password a {
+            color: #4CAF50; text-decoration: none; margin: 0 10px;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: red; font-size: 14px; margin-top: 10px; display: none;
+        }
+    </style>
+</head>
+
+<body>
+<div class="login-container">
+    <div class="login-box">
+        <div class="avatar">
+            <img src="/images/usuario.png" alt="" class="usuario" />
+        </div>
+        <form action="/login" method="POST" id="loginForm">
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" placeholder="Ingrese su usuario" required />
+
+            <label for="contrasena">Contraseña</label>
+            <input type="password" id="contrasena" name="contrasena" placeholder="Ingrese su contraseña" required />
+
+            <button type="submit" id="login-btn">INICIAR SESIÓN</button>
+
+            <div class="forgot-password">
+                <a href="#">¿Olvidó su contraseña?</a>
+                <a href="/registro">Registrarse</a>
+            </div>
+        </form>
+
+        <div id="errorMessage" class="error-message">
+            <p>Usuario o contraseña incorrectos.</p>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
