@@ -1,16 +1,16 @@
 package Krisseldu.Krisseldu.controller;
 
-import Krisseldu.Krisseldu.model.Asistencia;
-import Krisseldu.Krisseldu.model.Ejercicio;
-import Krisseldu.Krisseldu.model.Usuario;
+import Krisseldu.Krisseldu.model.*;
 import Krisseldu.Krisseldu.service.AsistenciaService;
 import Krisseldu.Krisseldu.service.EjercicioService;
+import Krisseldu.Krisseldu.service.MensajeService;
 import Krisseldu.Krisseldu.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -28,92 +28,118 @@ public class EjercicioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // Mostrar la página de ejercicios filtrados por condiciones del usuario
+    @Autowired
+    private MensajeService mensajeService;
+
+    // Mostrar la página de ejercicios
     @GetMapping("/ejercicios")
     public String mostrarEjerciciosPage(Model model, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
-            return "redirect:/login";
+        String dni = (String) session.getAttribute("dni");
+
+        if (dni == null || dni.isBlank()) {
+            return "redirect:/login"; // Redirige a login si no hay sesión válida
         }
 
-        Usuario usuario = usuarioService.obtenerUsuarioPorUsername(username);
+        Usuario usuario = usuarioService.obtenerUsuarioPorDni(dni);
         if (usuario == null) {
-            return "redirect:/login";
+            return "redirect:/login"; // Redirige a login si no se encuentra el usuario
         }
 
-        // Obtener IDs de condiciones asignadas al usuario
+        String nombreUsuario = usuario.getNombre() + " " + usuario.getApellido();
         List<Long> condicionesIds = usuarioService.obtenerCondicionesPorUsuario(usuario.getId())
                 .stream()
-                .map(condicion -> condicion.getId())
+                .map(Condicion::getId)
                 .collect(Collectors.toList());
 
-        // Obtener ejercicios filtrados por condiciones y usuario
         List<Ejercicio> ejercicios = ejercicioService.obtenerEjerciciosPorCondicionesYUsuario(condicionesIds, usuario.getId());
 
-        model.addAttribute("ejercicios", ejercicios);
-        model.addAttribute("username", username);
+        List<NotificacionDTO> notificaciones = mensajeService.obtenerNotificacionesUsuario(usuario.getId());
+        long sinLeerCount = notificaciones.stream().filter(n -> !n.isLeido()).count();
 
-        return "ejercicios";  // Retorna la vista de ejercicios filtrada
+        model.addAttribute("nombre", nombreUsuario);
+        model.addAttribute("ejercicios", ejercicios);
+        model.addAttribute("notificaciones", notificaciones);
+        model.addAttribute("notificacionesSinLeer", sinLeerCount);
+
+        return "ejercicios"; // Vista con los ejercicios
     }
 
-    // Iniciar ejercicio: registra asistencia y marca ejercicio como pendiente para usuario
+    // Iniciar un ejercicio y redirigir a la página de asistencias
     @GetMapping("/iniciarEjercicio")
     public String iniciarEjercicio(@RequestParam Long ejercicioId, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
-            return "redirect:/login";
+        String dni = (String) session.getAttribute("dni");
+
+        if (dni == null || dni.isBlank()) {
+            return "redirect:/login"; // Redirige a login si no hay sesión válida
         }
 
-        Usuario usuario = usuarioService.obtenerUsuarioPorUsername(username);
+        Usuario usuario = usuarioService.obtenerUsuarioPorDni(dni);
         if (usuario == null) {
-            return "redirect:/login";
+            return "redirect:/login"; // Redirige a login si no se encuentra el usuario
         }
 
-        // Registrar asistencia inicial
-        Asistencia asistencia = new Asistencia();
-        asistencia.setEjercicioId(ejercicioId);
-        asistencia.setUsuarioId(usuario.getId());
-        asistencia.setRealizado(false);
-        asistenciaService.registrarAsistencia(asistencia);
+        // Obtener las condiciones del usuario
+        List<Condicion> condiciones = usuarioService.obtenerCondicionesPorUsuario(usuario.getId());
+        String videoLink = generarVideoLinkPorCondicion(condiciones);
 
-        // Marcar ejercicio pendiente para el usuario
+        // Verificar si la asistencia ya existe para este ejercicio
+        Asistencia asistenciaExistente = asistenciaService.obtenerAsistencia(ejercicioId, usuario.getId());
+        if (asistenciaExistente == null) {
+            // Si no existe, registrar una nueva asistencia con estado "presente"
+            Asistencia asistencia = new Asistencia();
+            asistencia.setEjercicioId(ejercicioId);
+            asistencia.setUsuarioId(usuario.getId());
+            asistencia.setAsistencia("presente");
+            asistencia.setVideo(videoLink);
+            asistenciaService.registrarAsistencia(asistencia);
+        } else {
+            // Si ya existe, actualizar la asistencia
+            asistenciaService.actualizarAsistencia(asistenciaExistente.getId(), "presente", videoLink);
+        }
+
+        // Marcar el ejercicio como pendiente
         ejercicioService.marcarEjercicioPendiente(usuario.getId(), ejercicioId);
 
-        // Redirigir a página de asistencias o donde corresponda
+        // Redirigir a la vista de asistencias con el ejercicioId
         return "redirect:/asistencias?ejercicioId=" + ejercicioId;
     }
 
-    // Marcar ejercicio como realizado para usuario
-    @GetMapping("/marcarEjercicioRealizado")
-    public String marcarEjercicioRealizado(@RequestParam Long ejercicioId, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
-            return "redirect:/login";
+    // Método auxiliar para generar el enlace del video según la condición
+    private String generarVideoLinkPorCondicion(List<Condicion> condiciones) {
+        for (Condicion c : condiciones) {
+            if ("esguince".equalsIgnoreCase(c.getNombre())) {
+                return "https://videoserver.com/videos/esguince.mp4";
+            } else if ("lesion tobillo".equalsIgnoreCase(c.getNombre())) {
+                return "https://videoserver.com/videos/lesion_tobillo.mp4";
+            }
         }
-
-        Usuario usuario = usuarioService.obtenerUsuarioPorUsername(username);
-        if (usuario == null) {
-            return "redirect:/login";
-        }
-
-        ejercicioService.marcarEjercicioRealizadoParaUsuario(ejercicioId, usuario.getId());
-        return "redirect:/ejercicios";
+        return "https://videoserver.com/videos/video_general.mp4"; // Video por defecto
     }
 
-    // Finalizar ejercicio: marcar como realizado para usuario
-    @GetMapping("/finalizarEjercicio")
-    public String finalizarEjercicio(@RequestParam Long ejercicioId, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
-            return "redirect:/login";
+    // Método para finalizar la rutina, marcar ejercicio como realizado y redirigir
+    @PostMapping("/finalizarRutina")
+    public String finalizarRutina(@RequestParam Long ejercicioId,
+                                  @RequestParam(required = false) String video,
+                                  HttpSession session,
+                                  Model model) {
+        String dni = (String) session.getAttribute("dni");
+
+        if (dni == null || dni.isBlank()) {
+            return "redirect:/login"; // Redirige a login si no hay sesión válida
         }
 
-        Usuario usuario = usuarioService.obtenerUsuarioPorUsername(username);
+        Usuario usuario = usuarioService.obtenerUsuarioPorDni(dni);
         if (usuario == null) {
-            return "redirect:/login";
+            return "redirect:/login"; // Redirige a login si no se encuentra el usuario
         }
 
-        ejercicioService.marcarEjercicioRealizadoParaUsuario(ejercicioId, usuario.getId());
+        // Marcar el ejercicio como realizado y actualizar la asistencia
+        ejercicioService.marcarEjercicioRealizadoParaUsuario(ejercicioId, usuario.getId(), video);
+
+        // Pasar el mensaje de éxito al modelo
+        model.addAttribute("mensajeExito", "Rutina enviada exitosamente.");
+
+        // Redirigir al usuario a la página de ejercicios
         return "redirect:/ejercicios";
     }
 }

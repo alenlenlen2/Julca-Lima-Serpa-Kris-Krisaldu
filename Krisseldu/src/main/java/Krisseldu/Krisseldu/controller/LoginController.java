@@ -16,29 +16,50 @@ public class LoginController {
     @Autowired
     private UsuarioService usuarioService;
 
+    // Mostrar el formulario de login
     @GetMapping("/login")
     public String showLoginForm() {
-        return "login";  // Devuelve la vista de login
+        return "login";  // Nombre del archivo HTML para login
     }
 
+    // Procesar la autenticación del usuario
     @PostMapping("/login")
-    public String loginUser(@RequestParam String usuario, @RequestParam String contrasena,
-                            Model model, HttpSession session) {
+    public String loginUser(@RequestParam String dni, @RequestParam String contrasena, Model model, HttpSession session) {
         try {
-            Usuario usuarioObj = usuarioService.authenticate(usuario, contrasena);
+            // Verificar si el usuario existe usando el servicio
+            Usuario usuarioObj = usuarioService.authenticateByDni(dni, contrasena);
 
-            // Guardar el username en la sesión
-            session.setAttribute("username", usuarioObj.getUsername());
+            // Si la autenticación es exitosa, guardar información en la sesión
+            session.setAttribute("usuario", usuarioObj);  // Guardamos el usuario completo en la sesión
+            session.setAttribute("dni", dni);  // Guardamos el dni del usuario también para referencia posterior
 
-            // Redirigir según rol
-            if ("TERAPEUTA".equalsIgnoreCase(usuarioObj.getRol())) {
-                return "redirect:/terapeuta";  // Redirige a vista terapeuta
+            // Obtener nombre completo y guardarlo en la sesión
+            String nombreCompleto = usuarioService.obtenerNombreCompleto(usuarioObj.getId());
+            session.setAttribute("nombre", nombreCompleto);  // Almacenar nombre completo en sesión
+
+            // Agregar mensaje de éxito
+            model.addAttribute("successMessage", "Se inició sesión correctamente.");
+
+            // Redirigir a la página correspondiente
+            if ("TERAPEUTA".equals(usuarioObj.getRol())) {
+                return "redirect:/terapeuta";  // Redirigir a la vista de terapeuta
+            } else if ("PACIENTE".equals(usuarioObj.getRol())) {
+                return "redirect:/home";  // Redirigir a la vista de paciente (home)
             } else {
-                return "redirect:/home";  // Redirige a home u otra vista según rol
+                model.addAttribute("errorMessage", "Rol desconocido.");
+                return "login";  // Redirige al login con un mensaje de error
             }
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "Usuario o contraseña incorrectos.");
-            return "login";  // Queda en login si falla autenticación
+            e.printStackTrace();  // Añadí esto para hacer debugging si ocurre un error
+            model.addAttribute("errorMessage", "DNI o contraseña incorrectos.");
+            return "login";  // Redirige al login con un mensaje de error
         }
+    }
+
+    // Ruta para cerrar sesión
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();  // Invalidar la sesión
+        return "redirect:/login";  // Redirigir al login
     }
 }

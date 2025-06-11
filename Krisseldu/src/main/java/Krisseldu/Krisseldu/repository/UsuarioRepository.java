@@ -4,6 +4,9 @@ import Krisseldu.Krisseldu.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.dao.EmptyResultDataAccessException;
+
+import java.util.List;
 
 @Repository
 public class UsuarioRepository {
@@ -11,41 +14,54 @@ public class UsuarioRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // Guardar usuario sin campo condición
-    public int save(Usuario usuario) {
-        String sql = "INSERT INTO usuario (nombre, apellido, edad, dni, username, password, rol) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        return jdbcTemplate.update(sql,
-                usuario.getNombre(),
-                usuario.getApellido(),
-                usuario.getEdad(),
-                usuario.getDni(),
-                usuario.getUsername(),
-                usuario.getPassword(),
-                usuario.getRol());
+    // Obtener pacientes asignados a un terapeuta
+    public List<Usuario> findPacientesByTerapeutaId(Long terapeutaId) {
+        String sql = "SELECT * FROM usuario WHERE rol = 'PACIENTE' AND terapeuta_id = ?";
+        return jdbcTemplate.query(sql, new Object[]{terapeutaId}, (rs, rowNum) -> mapUsuario(rs));
     }
 
-    // Obtener usuario por username sin campo condición
-    public Usuario findByUsername(String username) {
-        String sql = "SELECT * FROM usuario WHERE username = ?";
-        return jdbcTemplate.queryForObject(sql, new Object[]{username}, (rs, rowNum) -> {
-            Usuario user = new Usuario();
-            user.setId(rs.getLong("id"));
-            user.setUsername(rs.getString("username"));
-            user.setPassword(rs.getString("password"));
-            user.setNombre(rs.getString("nombre"));
-            user.setApellido(rs.getString("apellido"));
-            user.setEdad(rs.getInt("edad"));
-            user.setDni(rs.getString("dni"));
-            user.setRol(rs.getString("rol"));
-            return user;
-        });
+    // Obtener usuario por email
+    public Usuario findByEmail(String email) {
+        try {
+            String sql = "SELECT * FROM usuario WHERE email = ?";
+            return jdbcTemplate.queryForObject(sql, new Object[]{email}, (rs, rowNum) -> mapUsuario(rs));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
-    // Aquí puedes agregar métodos para guardar y obtener relaciones usuario_condicion
-    public void saveUsuarioCondicion(Long usuarioId, Long condicionId) {
-        String sql = "INSERT INTO usuario_condicion (usuario_id, condicion_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, usuarioId, condicionId);
+    // Obtener usuario por dni
+    public Usuario findByDni(String dni) {
+        try {
+            String sql = "SELECT * FROM usuario WHERE dni = ?";
+            return jdbcTemplate.queryForObject(sql, new Object[]{dni}, (rs, rowNum) -> mapUsuario(rs));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
-    // Otros métodos relacionados con condiciones o usuario pueden ir aquí
+    // Obtener usuario por id
+    public Usuario findById(Long id) {
+        try {
+            String sql = "SELECT * FROM usuario WHERE id = ?";
+            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> mapUsuario(rs));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    // Mapeo del usuario para incluir el correo electrónico
+    private Usuario mapUsuario(java.sql.ResultSet rs) throws java.sql.SQLException {
+        Usuario u = new Usuario();
+        u.setId(rs.getLong("id"));
+        u.setNombre(rs.getString("nombre"));
+        u.setApellido(rs.getString("apellido"));
+        u.setEdad(rs.getInt("edad"));
+        u.setDni(rs.getString("dni"));  // Usamos dni ahora en vez de username
+        u.setEmail(rs.getString("email"));  // Email sigue presente
+        u.setPassword(rs.getString("password"));
+        u.setRol(rs.getString("rol"));
+        u.setTerapeutaId(rs.getLong("terapeuta_id"));
+        return u;
+    }
 }

@@ -5,11 +5,26 @@ public class Usuario {
     private String nombre;
     private String apellido;
     private int edad;
-    private String condicion;
-    private String dni;
-    private String username;
+    private String dni;  // Usamos DNI en lugar de username
+    private String email;
     private String password;
-    private String rol;  // Nuevo campo rol
+    private String rol; // 'TERAPEUTA', 'ADMIN', 'PACIENTE'
+    private Long terapeutaId;
+
+    // Constructores, Getters y Setters
+    public Usuario() {}
+
+    public Usuario(Long id, String nombre, String apellido, int edad, String dni, String email, String password, String rol, Long terapeutaId) {
+        this.id = id;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.edad = edad;
+        this.dni = dni;  // Cambiado a DNI
+        this.email = email;
+        this.password = password;
+        this.rol = rol;
+        this.terapeutaId = terapeutaId;
+    }
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -24,18 +39,18 @@ public class Usuario {
     public int getEdad() { return edad; }
     public void setEdad(int edad) { this.edad = edad; }
 
-    public String getCondicion() { return condicion; }
-    public void setCondicion(String condicion) { this.condicion = condicion; }
-
-    public String getDni() { return dni; }
+    public String getDni() { return dni; }  // Ahora el campo que usamos es DNI
     public void setDni(String dni) { this.dni = dni; }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public Long getTerapeutaId() { return terapeutaId; }
+    public void setTerapeutaId(Long terapeutaId) { this.terapeutaId = terapeutaId; }
 }
