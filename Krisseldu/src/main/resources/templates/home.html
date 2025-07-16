@@ -403,13 +403,81 @@
             height: 22px;
             fill: white;
             flex-shrink: 0;
-        }
+        }/* ╔═══════════════════════════════════════╗
+   ║   BURBUJAS MOTIVADORAS (sway + pop)   ║
+   ╚═══════════════════════════════════════╝ */
+
+/* contenedor fijo (parte baja) */
+#bubbleZone{
+  position:fixed;
+  bottom:-70px;              /* nace fuera de pantalla */
+  left:0; width:100%;
+  height:0;
+  pointer-events:none;
+  overflow:visible;
+  z-index:1400;
+}
+
+/* burbuja individual */
+.bubble{
+  position:absolute;
+  bottom:0;
+  left:var(--x,50%);         /* coord. X definida vía JS */
+  transform:translateX(-50%);
+  padding:18px 32px;
+  border-radius:50px;
+  font:600 17px/1.35 Arial, sans-serif;
+  color:#fff;
+  background: radial-gradient(circle at 30% 30%,
+              var(--c1) 0%,             /* ← mismo color de inicio */
+              var(--c1) 55%,
+              var(--c2) 100%);
+  box-shadow:0 8px 22px rgba(0,0,0,.18);
+  white-space:nowrap;
+  pointer-events:auto;
+
+  /* asciende con vaivén y termina “pop” */
+  animation:rise 11s ease-out forwards;
+}
+
+/* trayectoria vertical + sway lateral */
+@keyframes rise{
+  0%   {transform:translate(calc(-50%),   24px)  scale(.6);  opacity:0;}
+  10%  {transform:translate(calc(-50%),   0)     scale(.8);  opacity:1;}
+  30%  {transform:translate(calc(-50% + var(--shift)), -35vh)  rotate(3deg);}
+  50%  {transform:translate(calc(-50% - var(--shift)), -70vh)  rotate(-3deg);}
+  70%  {transform:translate(calc(-50% + calc(var(--shift)*.6)), -100vh);}
+  85%  {opacity:1;}
+  100% {transform:translate(calc(-50%), -125vh) scale(1.05); opacity:1;}
+}
+
+/* explosión al final (o al clic, vía JS) */
+@keyframes pop{to{transform:translate(-50%,-20px) scale(1.5); opacity:0;}}
+
+
 
         #pendingExercisesMenu:hover {
             background-color: #2b78e4;
             border-color: #2b78e4;
         }
+        .floating-phrase{
+  position:absolute;
+  font-size:1.2rem;           /* más grande */
+  font-weight:700;
+  text-shadow:1px 1px 3px rgba(0,0,0,.25);
+  white-space:nowrap;
+  pointer-events:none;
+  animation:floatFade 3.5s ease-out forwards;
+}
+@keyframes floatFade{
+  0%   {opacity:0;   transform:translate(-50%,0) rotate(0deg)     scale(.8);}
+  10%  {opacity:1;   transform:translate(-50%,-20px) rotate(3deg) scale(1);}
+  100% {opacity:0;   transform:translate(-50%,-140px) rotate(-6deg) scale(1.2);}
+}
+
     </style>
+    <!-- Agregar SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -513,16 +581,128 @@
             logres un bienestar mental duradero. ¡Únete a nosotros y comienza tu viaje hacia una mente más ágil y un
             futuro más brillante!</p>
     </div>
-    <img src="/images/imagen2.png" alt="" class="hero-image" />
+    <img id="motivationalImage"
+         src="/images/imagen2.png"
+         alt="Motivación"
+         class="hero-image" />
 </section>
 
 
 <script>
+    // Obtener el mensaje de éxito desde el modelo de Spring
+    var successMessage = /*[[${successMessage}]]*/ '';
+
+    // Si hay un mensaje de éxito, mostrar una alerta de SweetAlert2
+    if (successMessage && successMessage.trim() !== '') {
+        Swal.fire({
+            title: '¡Éxito!',
+            text: successMessage,
+            icon: 'success',
+            confirmButtonText: 'Aceptar'
+        }).then(() => {
+            // Redirigir a la página correspondiente después de la alerta
+            window.location.href = '/home'; // O ajusta la redirección según el rol del usuario
+        });
+    }
     // Funcionalidad para cerrar sesión
     document.getElementById('logout').addEventListener('click', function () {
         alert("Cerrando sesión...");
         window.location.href = "/login";
     });
+    const frases = [
+  "¡Sigue adelante!", "Confía en tu potencial", "Cada paso cuenta",
+  "Lo estás haciendo bien", "Cree y lograrás"
+];
+const colores = ["#2b78e4","#ff4081","#ffb300","#66bb6a","#ab47bc"];
+
+const img  = document.getElementById('motivationalImage');
+const hero = img.parentElement;
+hero.style.position = "relative";
+
+img.addEventListener('click', () => {
+  /* Queremos 3 frases por clic → for(...) */
+  for (let j = 0; j < 1; j++){
+    const span = document.createElement('span');
+    const frase = frases[Math.floor(Math.random()*frases.length)];
+    span.textContent = frase;
+    span.className = 'floating-phrase';
+
+    /* Color aleatorio */
+    span.style.color = colores[Math.floor(Math.random()*colores.length)];
+
+    /* Posición: círculo 30-80 px del centro */
+    const r = 30 + Math.random()*50;
+    const ang = Math.random()*2*Math.PI;
+
+    const rect = img.getBoundingClientRect();
+    const heroRect = hero.getBoundingClientRect();
+    const cx = rect.left - heroRect.left + rect.width/2;
+    const cy = rect.top  - heroRect.top  + rect.height/2;
+
+    span.style.left = `${cx + r*Math.cos(ang)}px`;
+    span.style.top  = `${cy + r*Math.sin(ang)}px`;
+
+    hero.appendChild(span);
+    span.addEventListener('animationend', () => span.remove());
+  }
+});
+</script>
+<!-- Zona donde nacerán las burbujas -->
+<div id="bubbleZone"></div>
+<script>
+    const FRASES = [
+      "¡Sigue adelante!", "Confía en tu potencial",
+      "Cada paso cuenta",  "Lo estás haciendo bien",
+      "Cree y lograrás"
+    ];
+    const INTERVALO = 60_000;               // 1 minuto
+    const zone      = document.getElementById('bubbleZone');
+
+    /* devuelve dos colores pastel distintos */
+    function pastel() {
+      const h = Math.random()*360|0;
+      return [`hsl(${h} 75% 70%)`,`hsl(${(h+40)%360} 75% 60%)`];
+    }
+
+    /* crea y lanza una burbuja */
+    function burbuja(txt){
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      b.textContent = txt;
+
+      /* posición horizontal 10 % – 90 % */
+      const x = 10 + Math.random()*80;
+      b.style.setProperty('--x', x + '%');
+
+      /* amplitud de sway 25–60 px */
+      b.style.setProperty('--shift', (25 + Math.random()*35) + 'px');
+
+      /* colores */
+      const [c1,c2] = pastel();
+      b.style.setProperty('--c1', c1);
+      b.style.setProperty('--c2', c2);
+
+      /* al terminar ascenso -> pop */
+      b.addEventListener('animationend', e=>{
+        if(e.animationName==='rise'){
+          b.style.animation = 'pop .35s forwards';
+        } else if(e.animationName==='pop'){
+          b.remove();
+        }
+      });
+
+      /* pop al clic */
+      b.onclick = () => b.style.animation = 'pop .35s forwards';
+
+      zone.appendChild(b);
+    }
+
+    /* primera burbuja al cargar */
+    burbuja(FRASES[Math.random()*FRASES.length|0]);
+
+    /* siguientes cada minuto */
+    setInterval(()=>burbuja(
+      FRASES[Math.random()*FRASES.length|0]), INTERVALO);
 </script>
 
 </body>

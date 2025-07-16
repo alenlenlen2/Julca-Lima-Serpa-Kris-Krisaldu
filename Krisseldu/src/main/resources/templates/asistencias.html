@@ -1,286 +1,77 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Asistencias</title>
     <style>
-        /* Reset y estilos base */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
-            padding: 0 20px;
-        }
-
-        /* Header y Navbar */
-        .header {
-            background-color: #ffffff;
-            padding: 20px 50px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .navbar {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; padding: 0 20px; }
+        .header { background: #fff; padding: 20px 50px; box-shadow: 0 4px 10px rgba(0,0,0,.1); margin-bottom: 30px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; }
+        .logo h1 { font-size: 28px; color: #2b78e4; font-weight: bold; letter-spacing: 1px; }
+        .navbar-items { display: flex; }
+        .navbar-item { margin-right: 25px; font-size: 18px; color: #333; font-weight: bold; text-decoration: none; }
+        .navbar-item:hover { color: #2b78e4; }
+        .user-info { display: flex; align-items: center; position: relative; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropbtn { background: transparent; border: none; color: #333; font-size: 16px; cursor: pointer; }
+        .dropdown-content { display: none; position: absolute; right: 0; background: #fff; box-shadow: 0 8px 16px rgba(0,0,0,.2); border-radius: 5px; z-index: 10; min-width: 200px; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .videos-wrap {
+            margin: 50px auto 0 auto;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 36px;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
         }
-
-        .logo h1 {
-            font-size: 28px;
-            color: #2b78e4;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .navbar-items {
-            display: flex;
-        }
-
-        .navbar-item {
-            margin-right: 25px;
-            font-size: 18px;
-            cursor: pointer;
-            color: #333;
-            font-weight: bold;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-item:hover {
-            color: #2b78e4;
-            text-decoration: none;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        #username {
-            margin-right: 10px;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .notification-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        /* Badge contador */
-        .notification-count {
-            background-color: red;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-            border-radius: 50%;
-            padding: 2px 6px;
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            min-width: 18px;
-            text-align: center;
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropbtn {
-            background-color: transparent;
-            border: none;
-            color: #333;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #fff;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            border-radius: 5px;
-            z-index: 1;
+        .video-col {
+            flex: 1 1 340px;
+            max-width: 500px;
             min-width: 300px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .dropdown-content a {
-            color: #333;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-weight: normal;
-            white-space: normal;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        /* Video recording container y controles */
-        .video-recording-container {
-            margin-top: 50px;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            position: relative; /* Agregado para posicionar el texto sobre los cuadros */
-        }
-
-        .video-recording-box, .video-container {
-            width: 700px; /* Aumentamos el tamaño de los contenedores */
-            height: 500px; /* Aumentamos el tamaño de los contenedores */
-            background-color: #000;
+            background: #fff;
             border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 14px rgba(0,0,0,0.12);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
         }
-
-        .video-recording-container h3 {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%); /* Centrado horizontal */
-            font-size: 24px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            color: #2b78e4;
-            z-index: 4; /* Asegura que el texto esté encima de los cuadros */
-        }
-
-        /* Contenedor del video */
-        .video-container {
-            background-color: #222;
-        }
-
-        /* Ajustamos el video para que ocupe todo el espacio del cuadro */
-        .video-container iframe {
+        .video-col h4 { font-size: 18px; color: #2b78e4; margin-bottom: 8px; font-weight: 600; }
+        video, #myVideo {
             width: 100%;
-            height: 100%;
-            object-fit: cover; /* Asegura que el video ocupe todo el espacio disponible */
-        }
-
-        .recording-status {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            background-color: rgba(230, 0, 0, 0.8);
-            padding: 6px 12px;
+            max-width: 460px;
+            min-height: 260px;
             border-radius: 8px;
-            color: white;
-            user-select: none;
+            background: #000;
+            margin-bottom: 10px;
         }
-
-        button.record-button,
-        button.pause-button,
-        button.stop-button,
-        button.resume-button {
-            position: absolute;
-            bottom: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
+        .controls { text-align: center; margin-top: 16px; }
+        .controls button {
+            margin: 0 7px;
+            background: #4CAF50;
+            color: #fff;
             padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        button.record-button:hover,
-        button.pause-button:hover,
-        button.stop-button:hover,
-        button.resume-button:hover {
-            background-color: #45a049;
-        }
-
-        button.record-button {
-            left: 20%;
-        }
-
-        button.pause-button {
-            left: 40%;
-            display: none;
-        }
-
-        button.resume-button {
-            left: 40%;
-            display: none;
-        }
-
-        button.stop-button {
-            left: 60%;
-            display: none;
-        }
-
-        /* Botón de Enviar Rutina centrado debajo del primer cuadro de grabación */
-        #sendButton {
-            padding: 10px 20px;  /* Ajuste el tamaño del botón */
-            font-size: 16px;  /* Reducido el tamaño de la fuente */
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
             border: none;
-            cursor: pointer;
-            display: none; /* Inicialmente oculto */
-            transition: background-color 0.3s ease;
-            width: auto; /* Ajuste el ancho automático */
-            text-align: center;
-            position: absolute; /* Cambiado a absolute para moverlo relativo al contenedor */
-            top: 110%; /* Centrado verticalmente respecto al contenedor */
-            left: 50%;
-            transform: translateX(-50%); /* Centra el botón debajo del cuadro de grabación */
-        }
-
-        #sendButton:hover {
-            background-color: #45a049;
-        }
-
-        .alert {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px;
-            margin-top: 30px;
-            border-radius: 5px;
-            display: none;
-            text-align: center;
+            border-radius: 6px;
+            font-size: 15px;
             font-weight: 600;
-            font-size: 18px;
+            cursor: pointer;
+            transition: background .25s;
+        }
+        .controls button:hover { background: #368b3f; }
+        .alert { background: #4CAF50; color: #fff; padding: 13px; margin: 32px auto 0; border-radius: 5px; text-align: center; font-size: 17px; display: none; width: 100%; max-width: 600px; }
+        @media (max-width: 900px) {
+            .videos-wrap { flex-direction: column; align-items: stretch; gap: 18px;}
+            .video-col { max-width: 100%; }
         }
     </style>
 </head>
-
 <body>
 <header class="header">
     <div class="navbar">
-        <div class="logo">
-            <h1>Krisaldu</h1>
-        </div>
+        <div class="logo"><h1>Krisaldu</h1></div>
         <div class="navbar-items">
             <a href="/home" class="navbar-item">Inicio</a>
             <a href="/ejercicios" class="navbar-item">Ejercicios</a>
@@ -299,195 +90,106 @@
 </header>
 
 <main>
-    <section class="video-recording-container">
-        <h3>Graba tu rutina</h3>
+    <section class="videos-wrap">
 
-        <!-- Cuadro de grabación -->
-        <div class="video-recording-box">
-            <video id="videoGrabado" width="100%" height="100%" controls>
-                <source src="/images/cognitivograbado.mp4" type="video/mp4">
-                Tu navegador no soporta el elemento de video.
-            </video>
-            <span class="recording-status" id="recordingStatus">No Grabando</span>
-
-            <!-- Botones de control -->
-            <button class="record-button" id="recordButton" onclick="startRecording()">Iniciar Grabación</button>
-            <button class="pause-button" id="pauseButton" onclick="pauseRecording()">Pausar</button>
-            <button class="resume-button" id="resumeButton" onclick="resumeRecording()">Reanudar</button>
-            <button class="stop-button" id="stopButton" onclick="stopRecording()">Parar</button>
-        </div>
-
-        <!-- Cuadro del video guía -->
-        <div class="video-container">
-            <video id="videoGuia" width="100%" height="100%" controls>
-                <source src="/images/cognitivos.mp4" type="video/mp4">
+        <!-- Video guía (referencial) -->
+        <div class="video-col">
+            <h4>Video guía</h4>
+            <video controls id="videoGuia">
+                <source th:if="${ejercicio != null}" th:src="@{/terapeuta/videos/{video}(video=${ejercicio.videoPath})}" type="video/mp4"/>
                 Tu navegador no soporta el elemento de video.
             </video>
         </div>
 
-        <!-- Formulario -->
-        <form id="finalizarForm" method="POST" action="/finalizarRutina">
-            <input type="hidden" name="ejercicioId" id="ejercicioId" th:value="${ejercicioId}" />
-            <input type="hidden" name="video" id="videoInput" />
-            <button type="submit" id="sendButton">Enviar Rutina</button>
-        </form>
+        <!-- Si el usuario ya grabó/subió un video para este ejercicio, lo mostramos -->
+        <div class="video-col" th:if="${videoPersonalizado != null}">
+            <h4>Tu video grabado</h4>
+            <video controls>
+                <source th:src="@{/usuario/videos/{video}(video=${videoPersonalizado})}" type="video/mp4"/>
+                Tu navegador no soporta el elemento de video.
+            </video>
+        </div>
 
-        <div class="alert" id="alertBox">¡Se registró tu rutina correctamente!</div>
+        <!-- Si no hay video personalizado, mostramos el cuadro para grabar -->
+        <div class="video-col" th:if="${videoPersonalizado == null}">
+            <h4>Graba tu rutina</h4>
+            <video id="myVideo" autoplay muted playsinline></video>
+            <div class="controls">
+                <button type="button" onclick="startRec()">Grabar</button>
+                <button type="button" onclick="stopRec()" id="stopBtn" style="display:none">Detener</button>
+                <button type="button" onclick="playRec()" id="playBtn" style="display:none">Reproducir</button>
+            </div>
+            <form id="finalizarForm" method="POST" action="/finalizarRutina" style="text-align:center;margin-top:18px">
+                <input type="hidden" name="ejercicioId" id="ejercicioId" th:value="${ejercicioId}" />
+                <input type="hidden" name="video" id="videoInput" />
+                <button type="submit" id="sendButton" style="display:none">Enviar Rutina</button>
+            </form>
+        </div>
     </section>
+
+    <div class="alert" id="alertBox">¡Se registró tu rutina correctamente!</div>
 </main>
 
-
 <script>
-    let isRecording = false;
-let isPaused = false;
-let guidePlayer, recordedPlayer;
-let recordedBlob;
-let recordedVideoElement;
-let mediaRecorder;
+    let mediaRecorder, recordedChunks = [], recordedBlob;
+    let videoStream;
 
-// Función para inicializar los videos de YouTube (API JS)
-function onYouTubeIframeAPIReady() {
-    // Video guía
-    guidePlayer = new YT.Player('guideVideo', {
-        events: {
-            'onReady': onPlayerReady
-        }
-    });
+    const video = document.getElementById('myVideo');
+    const stopBtn = document.getElementById('stopBtn');
+    const playBtn = document.getElementById('playBtn');
+    const sendBtn = document.getElementById('sendButton');
+    const videoInput = document.getElementById('videoInput');
 
-    // Video grabado
-    recordedPlayer = new YT.Player('recordedVideo', {
-        events: {
-            'onReady': onPlayerReady
-        }
-    });
-}
+    // Inicia grabación
+    function startRec() {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(function(stream) {
+                videoStream = stream;
+                video.srcObject = stream;
+                mediaRecorder = new MediaRecorder(stream);
 
-// Cuando el reproductor está listo
-function onPlayerReady(event) {
-    console.log('El reproductor está listo');
-}
-
-// Iniciar grabación y reproducción sincronizada
-function startRecording() {
-    isRecording = true;
-    isPaused = false;
-    document.getElementById('recordButton').style.display = "none";
-    document.getElementById('pauseButton').style.display = "inline-block";
-    document.getElementById('stopButton').style.display = "inline-block";
-    document.getElementById('recordingStatus').textContent = "Grabando";
-    document.getElementById('recordingStatus').style.backgroundColor = "#e60000";
-
-    guidePlayer.playVideo(); // Reproducir el video guía
-    recordedPlayer.playVideo(); // Reproducir el video grabado
-
-    alert("La grabación ha comenzado.");
-
-    // Preparar grabación de video
-    startVideoRecording();
-}
-
-// Pausar ambos videos
-function pauseRecording() {
-    isPaused = true;
-    document.getElementById('pauseButton').style.display = "none";
-    document.getElementById('resumeButton').style.display = "inline-block";
-
-    guidePlayer.pauseVideo(); // Pausar el video guía
-    recordedPlayer.pauseVideo(); // Pausar el video grabado
-
-    if (mediaRecorder) mediaRecorder.pause(); // Pausar la grabación de video
-
-    alert("La grabación ha sido pausada.");
-}
-
-// Reanudar ambos videos
-function resumeRecording() {
-    isPaused = false;
-    document.getElementById('pauseButton').style.display = "inline-block";
-    document.getElementById('resumeButton').style.display = "none";
-
-    guidePlayer.playVideo(); // Reanudar el video guía
-    recordedPlayer.playVideo(); // Reanudar el video grabado
-
-    if (mediaRecorder) mediaRecorder.resume(); // Reanudar la grabación de video
-
-    alert("La grabación ha sido reanudada.");
-}
-
-// Detener ambos videos
-function stopRecording() {
-    isRecording = false;
-    document.getElementById('stopButton').style.display = "none";
-    document.getElementById('sendButton').style.display = "inline-block";
-    document.getElementById('pauseButton').style.display = "none";
-    document.getElementById('resumeButton').style.display = "none";
-
-    guidePlayer.stopVideo(); // Detener el video guía
-    recordedPlayer.stopVideo(); // Detener el video grabado
-
-    if (mediaRecorder) {
-        mediaRecorder.stop(); // Detener la grabación de video
+                recordedChunks = [];
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+                mediaRecorder.onstop = function() {
+                    recordedBlob = new Blob(recordedChunks, { type: "video/mp4" });
+                    video.srcObject = null;
+                    video.src = URL.createObjectURL(recordedBlob);
+                    playBtn.style.display = "";
+                    sendBtn.style.display = "";
+                    // Convertimos a base64 para enviar al backend si lo necesitas:
+                    let reader = new FileReader();
+                    reader.onloadend = function() {
+                        videoInput.value = reader.result; // Esto será "data:video/mp4;base64,AAA..."
+                    };
+                    reader.readAsDataURL(recordedBlob);
+                };
+                mediaRecorder.start();
+                stopBtn.style.display = "";
+            });
     }
 
-    alert("La grabación ha sido detenida.");
-}
-
-// Iniciar grabación de video con MediaRecorder API
-function startVideoRecording() {
-    // Usar un stream de video para grabar
-    const videoElement = document.createElement('video');
-    recordedVideoElement = videoElement;
-    videoElement.width = 700;
-    videoElement.height = 500;
-
-    document.getElementById('videoContainer').appendChild(videoElement);
-
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            videoElement.srcObject = stream;
-            videoElement.play();
-
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = function (event) {
-                recordedBlob = event.data;
-            };
-            mediaRecorder.start();
-        })
-        .catch(err => {
-            alert('Error al acceder a la cámara: ' + err);
-        });
-}
-
-// Enviar rutina con el archivo grabado
-function submitRoutine() {
-    const formData = new FormData();
-    formData.append("video", recordedBlob, "video_grabado.mp4");
-
-    // Enviar el archivo al servidor usando Fetch API
-    fetch('/ruta/del/endpoint', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.ok) {
-            alert('Rutina enviada exitosamente');
-            window.location.href = "/ejercicios"; // Redirige a otra página si es necesario
-        } else {
-            alert('Hubo un error al enviar la rutina');
+    // Detener grabación
+    function stopRec() {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            stopBtn.style.display = "none";
         }
-    })
-    .catch(() => {
-        alert('Error en la conexión');
+    }
+
+    // Reproducir la grabación
+    function playRec() {
+        if (video.src) video.play();
+    }
+
+    document.getElementById('logout').addEventListener('click', function () {
+        alert("Cerrando sesión...");
+        window.location.href = "/login";
     });
-}
-
-// Cerrar sesión
-document.getElementById('logout').addEventListener('click', function () {
-    alert("Cerrando sesión...");
-    window.location.href = "/login";
-});
 </script>
-
-
 </body>
 </html>

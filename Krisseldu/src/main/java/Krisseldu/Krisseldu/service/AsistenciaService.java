@@ -10,31 +10,28 @@ import java.util.List;
 @Service
 public class AsistenciaService {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    @Autowired private JdbcTemplate jdbcTemplate;
 
-    // Método para registrar asistencia
-    public void registrarAsistencia(Asistencia asistencia) {
-        String sql = "INSERT INTO asistencia (usuario_id, ejercicio_id, asistencia, video) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, asistencia.getUsuarioId(), asistencia.getEjercicioId(), asistencia.getAsistencia(), asistencia.getVideo());
+    // INSERTAR nueva asistencia
+    public void registrarAsistencia(Asistencia a){
+        String sql = "INSERT INTO asistencia (usuario_id, ejercicio_id, asistencia, video) VALUES (?,?,?,?)";
+        jdbcTemplate.update(sql, a.getUsuarioId(), a.getEjercicioId(), a.getAsistencia(), a.getVideo());
     }
 
-    // Método para actualizar la asistencia (sin video)
-    public void actualizarAsistencia(Long asistenciaId, String estadoAsistencia) {
-        String sql = "UPDATE asistencia SET asistencia = ? WHERE id = ?";
-        jdbcTemplate.update(sql, estadoAsistencia, asistenciaId);
+    // ACTUALIZAR solo estado
+    public void actualizarAsistencia(Long id, String estado){
+        jdbcTemplate.update("UPDATE asistencia SET asistencia=? WHERE id=?", estado, id);
     }
 
-    // Método actualizado para incluir video (este método está relacionado con el HTML)
-    public void actualizarAsistencia(Long asistenciaId, String estadoAsistencia, String video) {
-        String sql = "UPDATE asistencia SET asistencia = ?, video = ? WHERE id = ?";
-        jdbcTemplate.update(sql, estadoAsistencia, video, asistenciaId);
+    // ACTUALIZAR estado y video
+    public void actualizarAsistencia(Long id, String estado, String video){
+        jdbcTemplate.update("UPDATE asistencia SET asistencia=?, video=? WHERE id=?", estado, video, id);
     }
 
-    // Obtener asistencia por ejercicio y usuario
-    public Asistencia obtenerAsistencia(Long ejercicioId, Long usuarioId) {
-        String sql = "SELECT id, usuario_id, ejercicio_id, asistencia, video FROM asistencia WHERE ejercicio_id = ? AND usuario_id = ?";
-        List<Asistencia> lista = jdbcTemplate.query(sql, (rs, rowNum) -> {
+    // OBTENER asistencia por ejercicio y usuario (debe devolver máximo UNA)
+    public Asistencia obtenerAsistencia(Long ejercicioId, Long usuarioId){
+        String sql = "SELECT id, usuario_id, ejercicio_id, asistencia, video FROM asistencia WHERE ejercicio_id=? AND usuario_id=? ORDER BY id DESC";
+        List<Asistencia> l = jdbcTemplate.query(sql, (rs, r) -> {
             Asistencia a = new Asistencia();
             a.setId(rs.getLong("id"));
             a.setUsuarioId(rs.getLong("usuario_id"));
@@ -43,42 +40,27 @@ public class AsistenciaService {
             a.setVideo(rs.getString("video"));
             return a;
         }, ejercicioId, usuarioId);
-
-        return lista.isEmpty() ? null : lista.get(0);
+        // Si hay más de uno, solo toma el más reciente y considera limpiar tu BD!
+        return l.isEmpty() ? null : l.get(0);
     }
 
-    // Método para registrar o actualizar la asistencia de un ejercicio (en este caso, incluye el video)
-    public void registrarOActualizarAsistencia(Long ejercicioId, Long usuarioId, String estadoAsistencia, String video) {
-        Asistencia asistencia = obtenerAsistencia(ejercicioId, usuarioId);
-
-        // Si la asistencia no existe, registramos una nueva
-        if (asistencia == null) {
-            asistencia = new Asistencia();
-            asistencia.setUsuarioId(usuarioId);
-            asistencia.setEjercicioId(ejercicioId);
-            asistencia.setAsistencia(estadoAsistencia);
-            asistencia.setVideo(video);
-            registrarAsistencia(asistencia);
+    // MARCAR asistencia como realizada (actualiza o inserta)
+    public void marcarAsistenciaRealizada(Long ejercicioId, Long usuarioId, String video){
+        Asistencia a = obtenerAsistencia(ejercicioId, usuarioId);
+        if(a == null){
+            a = new Asistencia();
+            a.setEjercicioId(ejercicioId);
+            a.setUsuarioId(usuarioId);
+            a.setAsistencia("realizado");
+            a.setVideo(video);
+            registrarAsistencia(a);
         } else {
-            // Si ya existe, actualizamos la asistencia
-            actualizarAsistencia(asistencia.getId(), estadoAsistencia, video);
+            actualizarAsistencia(a.getId(), "realizado", video);
         }
     }
 
-    // Método para marcar asistencia como "realizado"
-    public void marcarAsistenciaRealizada(Long ejercicioId, Long usuarioId, String video) {
-        Asistencia asistenciaExistente = obtenerAsistencia(ejercicioId, usuarioId);
-        if (asistenciaExistente != null) {
-            // Actualizamos la asistencia para marcarla como realizada
-            actualizarAsistencia(asistenciaExistente.getId(), "realizado", video);
-        } else {
-            // Si no existe, registramos una nueva asistencia como realizada
-            Asistencia asistencia = new Asistencia();
-            asistencia.setEjercicioId(ejercicioId);
-            asistencia.setUsuarioId(usuarioId);
-            asistencia.setAsistencia("realizado");
-            asistencia.setVideo(video);
-            registrarAsistencia(asistencia);
-        }
+    // (Opcional) BORRAR asistencia por usuario y ejercicio
+    public void eliminarAsistencia(Long ejercicioId, Long usuarioId){
+        jdbcTemplate.update("DELETE FROM asistencia WHERE ejercicio_id=? AND usuario_id=?", ejercicioId, usuarioId);
     }
 }

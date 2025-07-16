@@ -163,7 +163,10 @@
 
 <!-- Mostrar SweetAlert en caso de éxito -->
 <script>
+    // Obtener el mensaje de éxito desde Spring
     const successMessage = /*[[${successMessage}]]*/ null;
+
+    // Si hay un mensaje de éxito, mostrar una alerta de SweetAlert2
     if (successMessage) {
         Swal.fire({
             title: '¡Éxito!',
@@ -175,6 +178,24 @@
             window.location.href = '/home'; // O ajusta la redirección según el rol del usuario
         });
     }
+
+    // Enviar el formulario con validación de campos
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', function(e) {
+        const dni = document.getElementById('dni').value;
+        const contrasena = document.getElementById('contrasena').value;
+
+        if (!dni || !contrasena) {
+            e.preventDefault(); // Prevenir el envío si falta algún campo
+            Swal.fire({
+                title: 'Error',
+                text: 'Por favor complete todos los campos.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar'
+            });
+        }
+    });
+});
 </script>
 </body>
 

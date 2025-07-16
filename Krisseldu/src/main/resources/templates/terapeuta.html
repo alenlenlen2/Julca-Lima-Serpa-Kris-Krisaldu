@@ -3,328 +3,149 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vista del Terapeuta</title>
+    <title>Panel Terapeuta</title>
+
+    <!-- ============  ESTILOS  ============ -->
     <style>
-        /* Reseteo de márgenes y padding */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; padding: 0 20px; }
-
-        /* Barra de navegación superior */
-        .header {
-            background-color: #ffffff;
-            padding: 20px 50px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+        :root{
+          --brand:#2b78e4;   /* azul marca */
+          --accent:#4caf50;  /* verde acento */
+          --bg:#f9f9f9;
+          --radius:8px;
         }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+        body{background:var(--bg);padding:0 20px;}
 
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
+        /* ---------- HEADER (sin cambios mayores) ---------- */
+        .header{background:#fff;padding:20px 50px;box-shadow:0 4px 10px rgba(0,0,0,.08);margin-bottom:30px;}
+        .navbar{display:flex;justify-content:space-between;align-items:center;}
+        .logo h1{font-size:28px;font-weight:700;color:var(--brand);letter-spacing:.5px}
+        .navbar-items{display:flex;gap:26px}
+        .navbar-item{font-size:18px;font-weight:600;color:#333;text-decoration:none;transition:.2s}
+        .navbar-item:hover,.navbar-item.active{color:var(--accent)}
+        .user-info{display:flex;align-items:center;gap:18px}
 
-        .logo h1 {
-            font-size: 28px;
-            color: #4CAF50; /* Krisaldu en verde */
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
+        /* Notificaciones (eliminamos icono "correo", mantenemos sino bell) */
+        .notification-icon{width:20px;position:relative;cursor:pointer}
+        .notification-count{position:absolute;top:-6px;right:-6px;background:red;color:#fff;font-size:11px;border-radius:50%;padding:2px 5px}
 
-        .navbar-items {
-            display: flex;
-            gap: 25px;
-        }
+        .dropdown{position:relative}
+        .dropbtn{background:none;border:none;font-size:16px;font-weight:600;cursor:pointer}
+        .dropdown-content{display:none;position:absolute;right:0;background:#fff;min-width:160px;border-radius:var(--radius);box-shadow:0 6px 14px rgba(0,0,0,.12);overflow:hidden;z-index:10}
+        .dropdown-content a{display:block;padding:10px 14px;font-weight:500;color:#333;text-decoration:none}
+        .dropdown-content a:hover{background:#f5f5f5}
+        .dropdown:hover .dropdown-content{display:block}
 
-        .navbar-item {
-            font-size: 18px;
-            cursor: pointer;
-            color: #333;
-            font-weight: bold;
-            text-decoration: none; /* Eliminar subrayado */
-            transition: all 0.3s ease;
-        }
+        /* ---------- FILTRO minimal ---------- */
+        .filter-container{max-width:1100px;margin:0 auto 24px;display:flex;justify-content:flex-start;gap:14px}
+        .filter-container input{flex:0 0 260px;padding:9px 14px;border:1px solid #ddd;border-radius:var(--radius);font-size:15px;transition:.2s}
+        .filter-container input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,120,228,.15)}
 
-        .navbar-item:hover {
-            color: #4CAF50;
-            text-decoration: none;
-        }
+        /* ---------- TABLE ---------- */
+        .table-container{max-width:1100px;margin:0 auto;background:#fff;border-radius:var(--radius);box-shadow:0 4px 12px rgba(0,0,0,.06);overflow-x:auto}
+        table{width:100%;border-collapse:collapse;font-size:15px}
+        thead{background:var(--accent);color:#fff}
+        th,td{padding:12px 14px;border-bottom:1px solid #eee;text-align:left}
+        tbody tr:hover{background:#fafafa}
+        a.no-underline{color:var(--brand);font-weight:600;text-decoration:none}
+        a.no-underline:hover{text-decoration:underline}
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        #username {
-            font-size: 16px;
-            color: #333;
-        }
-
-        /* Icono de notificaciones */
-        .notification-icon {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        /* Dropdown menú */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropbtn {
-            background-color: transparent;
-            border: none;
-            color: #333;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 0;
-            font-weight: bold;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #fff;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            border-radius: 5px;
-            z-index: 1;
-            min-width: 140px;
-        }
-
-        .dropdown-content a {
-            color: #333;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-weight: normal;
-            transition: background-color 0.3s ease;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown:hover .dropdown-content,
-        .dropdown:focus-within .dropdown-content {
-            display: block;
-        }
-
-        /* Estilo para el filtro de búsqueda */
-        .filter-container {
-            margin: 20px 0;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .filter-container label {
-            font-size: 16px;
-            color: #333;
-        }
-
-        .filter-container input {
-            padding: 8px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 200px;
-        }
-
-        .filter-container button {
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .filter-container button:hover {
-            background-color: #45a049;
-        }
-
-        /* Tabla y contenedor */
-        .table-container {
-            width: 100%;
-            max-width: 1000px;
-            margin: 30px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        th, td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-            vertical-align: middle;
-            word-wrap: break-word;
-        }
-
-        thead { background-color: #4CAF50; color: white; }
-        tbody tr:hover { background-color: #f9f9f9; }
-
-        a.no-underline {
-            text-decoration: none !important;
-            color: #4CAF50;
-            font-weight: 600;
-            transition: color 0.3s ease;
-            white-space: nowrap;
-        }
-
-        a.no-underline:hover {
-            color: #357a38;
-            text-decoration: underline;
-        }
-
-        @media (max-width: 900px) {
-            .table-container { padding: 10px; }
-            table { min-width: 600px; font-size: 12px; }
-            th, td { padding: 6px 8px; }
+        /* ---------- RESPONSIVE ---------- */
+        @media(max-width:760px){
+          .navbar-items{gap:16px}
+          .navbar-item{font-size:16px}
+          th,td{padding:10px}
+          .filter-container input{flex:1}
         }
     </style>
 </head>
 <body>
+<!-- ================================= HEADER ================================= -->
 <header class="header" role="banner">
     <div class="navbar">
-        <div class="logo" aria-label="Logo">
-            <h1>Krisaldu</h1>
-        </div>
+        <div class="logo"><h1>Krisaldu</h1></div>
+
+        <!-- … cabecera sin cambios … -->
+        <nav class="navbar-items">
+            <a href="/terapeuta" class="navbar-item active" id="linkPac">Pacientes</a>
+            <!-- 🔽  RUTA ACTUALIZADA  -->
+            <a href="/terapeuta/asignar" class="navbar-item" id="linkAsig">Asignar ejercicios</a>
+        </nav>
+        <!-- … resto del documento igual … -->
 
         <div class="user-info">
-            <span id="username">Hola, <span th:text="${nombre}">Usuario</span></span>
-            <div class="dropdown" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-controls="notificaciones-menu">
-                <button class="dropbtn" aria-label="Notificaciones">
-                    <img src="images/notificacion.png" alt="Notificaciones" class="notification-icon" />
-                    <span class="notification-count" th:if="${notificacionesSinLeer > 0}" th:text="${notificacionesSinLeer}">0</span>
+            <span id="username">Hola,&nbsp;<span th:text="${nombre}">Usuario</span></span>
+
+            <!-- Notificaciones -->
+            <div class="dropdown">
+                <button class="dropbtn">
+                    <img src="/images/notificacion.png" class="notification-icon" alt="Notificaciones"/>
+                    <span class="notification-count" th:if="${notificacionesSinLeer>0}" th:text="${notificacionesSinLeer}">0</span>
                 </button>
-                <div class="dropdown-content" id="notificaciones-menu" role="menu" aria-hidden="true" tabindex="-1"
-                     style="max-height: 300px; overflow-y: auto; min-width: 320px; background-color: #fff; border-radius: 5px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);">
-                    <div th:if="${#lists.isEmpty(notificaciones)}" style="padding: 10px; font-style: italic; color: #666;">
-                        No tienes notificaciones.
-                    </div>
-
-                    <a th:each="notificacion : ${notificaciones}"
-                       th:href="@{'/verMensaje/{mensajeId}(mensajeId=${notificacion.mensajeId})}"
-                       role="menuitem" tabindex="0"
-                       th:classappend="${notificacion.leido} ? '' : 'notificacion-nueva'">
-                        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4caf50; font-weight: 600; user-select: none;">
-                            <!-- Icono megáfono inline SVG -->
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="#4caf50" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                                <path d="M3 10v4h2l5 5V5L5 10H3zm16.5 2c0-1.05-.63-1.94-1.5-2.3v4.6c.87-.36 1.5-1.25 1.5-2.3zM14 7.7v8.6l3.5 2v-13l-3.5 2z"/>
-                            </svg>
-                            <span>Mensaje del terapeuta</span>
-                        </div>
-
-                        <div style="font-size: 15px; color: #333;">
-                            <span th:text="${notificacion.contenidoMensaje}">Contenido del mensaje aquí...</span>
-                        </div>
+                <div class="dropdown-content" style="max-height:260px;overflow-y:auto">
+                    <div th:if="${#lists.isEmpty(notificaciones)}" style="padding:10px;color:#777;font-style:italic">No tienes notificaciones.</div>
+                    <a th:each="n:${notificaciones}" th:href="@{'/verMensaje/{id}'(id=${n.mensajeId})}">
+                        <span th:text="${n.contenidoMensaje}">Mensaje…</span>
                     </a>
                 </div>
             </div>
+
+            <!-- Menú de usuario -->
             <div class="dropdown">
                 <button class="dropbtn">▼</button>
-                <div class="dropdown-content">
-                    <a href="#" id="logout">Cerrar Sesión</a>
-                </div>
+                <div class="dropdown-content"><a href="#" id="logout">Cerrar sesión</a></div>
             </div>
         </div>
     </div>
 </header>
 
-<!-- Formulario de filtrado -->
+<!-- ================================= FILTRO & TABLA ================================= -->
 <section class="filter-container">
-    <form method="GET" id="filterForm" th:action="@{/terapeuta}">
-        <label for="filtro">Filtro:</label>
-        <input type="text" id="filtro" name="filtro" th:value="${param.filtro}" placeholder="Buscar por nombre o DNI..." oninput="filterPatients()"/>
-    </form>
+    <input id="filtro" placeholder="Buscar por nombre o DNI…" oninput="filterPatients()">
 </section>
 
 <main class="table-container" role="main">
-    <table aria-describedby="table-description">
-        <caption id="table-description">Lista de Pacientes</caption>
-        <thead>
-        <tr>
-            <th scope="col">Nombre</th>
-            <th scope="col">DNI</th>
-            <th scope="col">Condición</th>
-            <th scope="col">Edad</th>
-            <th scope="col">Fecha Asistencia</th>
-            <th scope="col">Estado Asistencia</th>
-            <th scope="col">Ver Paciente</th>
-        </tr>
-        </thead>
+    <table aria-describedby="listPac">
+        <caption id="listPac" style="display:none">Lista de pacientes</caption>
+        <thead><tr>
+            <th>Nombre</th><th>DNI</th><th>Condición</th><th>Edad</th><th>Asistencia</th><th>Estado</th><th>Acción</th>
+        </tr></thead>
         <tbody id="patientsList">
-        <tr th:each="paciente : ${pacientes}">
+        <!-- ⚙ Render Thymeleaf -->
+        <tr th:each="paciente:${pacientes}">
             <td th:text="${paciente.nombre}">Nombre</td>
             <td th:text="${paciente.dni}">DNI</td>
             <td th:text="${paciente.condicion}">Condición</td>
             <td th:text="${paciente.edad}">Edad</td>
-            <td th:text="${paciente.asistenciaFecha != null} ? ${#dates.format(paciente.asistenciaFecha, 'dd/MM/yyyy HH:mm')} : 'No registrado'">Fecha</td>
-            <td th:text="${paciente.asistenciaEstado}">Asistencia</td>
-            <td>
-                <a th:href="@{/terapeuta/verPaciente/{id}(id=${paciente.id})}" class="no-underline">Ver Paciente</a>
-            </td>
+            <td th:text="${paciente.asistenciaFecha!=null}?${#dates.format(paciente.asistenciaFecha,'dd/MM/yy HH:mm')}: '—'">—</td>
+            <td th:text="${paciente.asistenciaEstado}">Ausente</td>
+            <td><a th:href="@{/terapeuta/verPaciente/{id}(id=${paciente.id})}" class="no-underline">Ver</a></td>
         </tr>
         <tr th:if="${#lists.isEmpty(pacientes)}">
-            <td colspan="7" style="text-align:center; padding:20px; font-style:italic; color:#999;">No hay pacientes registrados.</td>
+            <td colspan="7" style="text-align:center;color:#888;font-style:italic">No hay pacientes registrados.</td>
         </tr>
         </tbody>
     </table>
 </main>
 
+<!-- =================================  SCRIPTS ================================= -->
 <script>
-    function filterPatients() {
-        const filtro = document.getElementById('filtro').value;
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', '/terapeuta?filtro=' + encodeURIComponent(filtro), true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const response = xhr.responseText;
-                const parser = new DOMParser();
-                const htmlDoc = parser.parseFromString(response, 'text/html');
-                const newPatientsList = htmlDoc.getElementById('patientsList');
-                document.getElementById('patientsList').innerHTML = newPatientsList.innerHTML;
-            }
-        };
-        xhr.send();
+    /* ------- Filtro dinámico ------- */
+    function filterPatients(){
+      const q=document.getElementById('filtro').value.trim();
+      fetch('/terapeuta?filtro='+encodeURIComponent(q))
+       .then(r=>r.text()).then(html=>{
+         const tbody=new DOMParser().parseFromString(html,'text/html')
+                      .getElementById('patientsList').innerHTML;
+         document.getElementById('patientsList').innerHTML=tbody;
+       });
     }
 
-    // Funcionalidad para cerrar sesión
-    document.getElementById('logout').addEventListener('click', function () {
-        // Realizamos una solicitud de cierre de sesión al servidor
-        fetch('/logout', {
-            method: 'GET', // Usamos GET para hacer una solicitud de cierre de sesión
-            credentials: 'same-origin' // Enviar las cookies de sesión para cerrar la sesión correctamente
-        }).then(function(response) {
-            if (response.ok) {
-                // Si la respuesta es exitosa, redirigimos al login
-                window.location.href = "/login"; // Redirigir a la página de login
-            } else {
-                // Si algo sale mal, mostrar un mensaje de error
-                alert("Error al cerrar sesión.");
-            }
-        }).catch(function(error) {
-            // En caso de que la petición falle
-            console.error("Error en el cierre de sesión:", error);
-            alert("Hubo un problema al cerrar sesión.");
-        });
-    });
+    /* ------- Logout ------- */
+    document.getElementById('logout').onclick=e=>{
+      e.preventDefault();
+      fetch('/logout',{credentials:'same-origin'}).then(()=>location.href='/login');
+    };
 </script>
-
 </body>
 </html>

@@ -2,7 +2,6 @@ package Krisseldu.Krisseldu.service;
 
 import Krisseldu.Krisseldu.model.PasswordResetToken;
 import Krisseldu.Krisseldu.repository.PasswordResetTokenRepository;
-import Krisseldu.Krisseldu.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,96 +14,63 @@ public class PasswordResetService {
 
     private final PasswordResetTokenRepository tokenRepository;
     private final UsuarioService usuarioService;
-    private final EmailService emailService;  // Añadimos el EmailService para enviar el correo con el token
 
     @Autowired
     public PasswordResetService(PasswordResetTokenRepository tokenRepository,
-                                UsuarioService usuarioService,
-                                EmailService emailService) {
+                                UsuarioService usuarioService) {
         this.tokenRepository = tokenRepository;
-        this.usuarioService = usuarioService;
-        this.emailService = emailService;
+        this.usuarioService  = usuarioService;
     }
 
-    // Generar un token de restablecimiento utilizando Email o DNI
+    /* =========================================================
+       1️⃣  Crear y guardar token de 6 dígitos (válido 30 min)
+       ========================================================= */
     public String generateResetToken(String emailOrDni) {
-        // Buscar al usuario por email o DNI
-        Long usuarioId = null;
 
-        // Intentamos buscar primero por email
-        usuarioId = usuarioService.obtenerIdPorEmail(emailOrDni);
+        Long usuarioId = usuarioService.obtenerIdPorEmail(emailOrDni);
+        if (usuarioId == null)
+            usuarioId = usuarioService.obtenerIdPorDni(emailOrDni);
 
-        // Si no se encuentra por email, buscamos por DNI
-        if (usuarioId == null) {
-            usuarioId = usuarioService.obtenerIdPorDni(emailOrDni);  // Método en UsuarioService para obtener por DNI
-        }
+        if (usuarioId == null)
+            throw new IllegalArgumentException("Usuario no encontrado");
 
-        // Si no se encuentra el usuario, retornamos null
-        if (usuarioId == null) {
-            return null;
-        }
+        String token = generateSixDigitToken();                   // «123456»
+        LocalDateTime expiracion = LocalDateTime.now()
+                .plusMinutes(30); // 30 min
 
-        // Generamos el token de 6 dígitos
-        String token = generateSixDigitToken();
-
-        // Definimos la fecha de expiración como 2 minutos a partir de ahora
-        LocalDateTime fechaExpiracion = LocalDateTime.now().plusMinutes(2); // Token válido por 2 minutos
-
-        // Guardamos el token en la base de datos
-        tokenRepository.saveToken(usuarioId, token, fechaExpiracion);
-
-        // Obtenemos el correo del usuario para enviar el token
-        String email = usuarioService.obtenerUsuarioPorId(usuarioId).getEmail();
-
-        // Enviar el token por correo electrónico
-        emailService.sendResetTokenEmail(email, token);
-
-        return token;  // Devolvemos el token generado
+        tokenRepository.saveToken(usuarioId, token.trim(), expiracion);
+        return token;
     }
 
-    // Método para generar un token de 6 dígitos aleatorios
     private String generateSixDigitToken() {
-        Random random = new Random();
-        int token = 100000 + random.nextInt(900000);  // Genera un número aleatorio de 6 dígitos
-        return String.valueOf(token);
+        return String.valueOf(100_000 + new Random().nextInt(900_000));
     }
 
-    // Validar el token de restablecimiento
+    /* =========================================================
+       2️⃣  Validar token (única fuente: la base de datos)
+       ========================================================= */
     public boolean validateResetToken(String token) {
-        // Verificamos si el token existe y es válido
-        Optional<PasswordResetToken> resetToken = tokenRepository.findByToken(token);
+        if (token == null || token.isBlank()) return false;
 
-        // Si el token está presente, verificamos la fecha de expiración
-        if (resetToken.isPresent()) {
-            LocalDateTime expirationDate = resetToken.get().getFechaExpiracion();
-            LocalDateTime currentDate = LocalDateTime.now();
+        Optional<PasswordResetToken> opt =
+                tokenRepository.findByToken(token.trim());
 
-            // Depuración: muestra ambas fechas para asegurar que se comparan correctamente
-            System.out.println("Fecha de expiración: " + expirationDate);
-            System.out.println("Fecha actual: " + currentDate);
-
-            // Verificar si la fecha de expiración es después de la fecha actual
-            if (expirationDate.isAfter(currentDate)) {
-                return true;
-            } else {
-                System.out.println("Token ha expirado.");
-            }
-        }
-
-        return false;  // El token es inválido o ha expirado
+        return opt.isPresent();          // Solo existe y no está expirado/ usado
     }
 
-    // Marcar el token como usado
+    /* =========================================================
+       3️⃣  Marcar token como usado (tras cambiar la contraseña)
+       ========================================================= */
     public void markTokenAsUsed(String token) {
-        // Marcamos el token como usado en la base de datos
-        tokenRepository.markAsUsed(token);
+        tokenRepository.markAsUsed(token.trim());
     }
 
-    // Método para obtener el usuario usando el token de restablecimiento
+    /* =========================================================
+       4️⃣  Obtener ID de usuario a partir del token
+       ========================================================= */
     public Long getUsuarioIdFromToken(String token) {
-        Optional<PasswordResetToken> resetToken = tokenRepository.findByToken(token);
-
-        // Si el token es válido, obtenemos el usuarioId asociado
-        return resetToken.map(PasswordResetToken::getUsuarioId).orElse(null);
+        return tokenRepository.findByToken(token.trim())
+                .map(PasswordResetToken::getUsuarioId)
+                .orElse(null);
     }
 }

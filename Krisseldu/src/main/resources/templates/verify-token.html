@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>Verificación de Token</title>
     <style>
-        /* Estilos de la página */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f7f6;
@@ -54,11 +53,13 @@
 <body>
 <div class="container">
     <h2>Verificación de Token</h2>
-    <form action="#" th:action="@{/verify-token}" method="get">
-        <label for="token">Código de Verificación</label>
-        <input type="text" id="token" name="token" placeholder="Ingrese el código" required />
+    <form action="/verify-token" method="post">
+        <!-- 🔴  quitamos el hidden   -->
+        <label for="tokenInput">Código de verificación</label>
+        <input type="text" id="tokenInput" name="token" placeholder="Ingrese el código" required />
         <button type="submit">Verificar Token</button>
     </form>
+
     <div th:if="${errorMessage}" style="color: red; margin-top: 10px;">
         <p th:text="${errorMessage}"></p>
     </div>

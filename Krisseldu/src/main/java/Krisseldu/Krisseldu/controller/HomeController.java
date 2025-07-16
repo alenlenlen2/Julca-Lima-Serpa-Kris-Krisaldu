@@ -1,9 +1,9 @@
 package Krisseldu.Krisseldu.controller;
 
-import Krisseldu.Krisseldu.model.Usuario;
 import Krisseldu.Krisseldu.dto.MensajeDTO;
 import Krisseldu.Krisseldu.model.Ejercicio;
 import Krisseldu.Krisseldu.model.NotificacionDTO;
+import Krisseldu.Krisseldu.model.Usuario;
 import Krisseldu.Krisseldu.service.EjercicioService;
 import Krisseldu.Krisseldu.service.MensajeService;
 import Krisseldu.Krisseldu.service.UsuarioService;
@@ -18,57 +18,42 @@ import java.util.List;
 @Controller
 public class HomeController {
 
-    @Autowired
-    private MensajeService mensajeService;
-
-    @Autowired
-    private UsuarioService usuarioService;
-
-    @Autowired
-    private EjercicioService ejercicioService;
+    @Autowired private MensajeService mensajeService;
+    @Autowired private UsuarioService usuarioService;
+    @Autowired private EjercicioService ejercicioService;
 
     @GetMapping("/home")
     public String showHomePage(Model model, HttpSession session) {
-        // Obtener el DNI del usuario desde la sesión
+
+        // 1. Validar sesión
         String dni = (String) session.getAttribute("dni");
-
-        // Si no hay sesión o el DNI es inválido, redirigimos al login
         if (dni == null || dni.isBlank()) {
-            return "redirect:/login"; // Redirige a login si no hay sesión válida
+            return "redirect:/login";
         }
 
-        // Obtener el usuario completo usando el DNI (la variable 'dni' es suficiente para la búsqueda)
-        Usuario usuario = usuarioService.obtenerUsuarioPorDni(dni); // Aquí usamos el DNI para obtener el usuario
+        // 2. Obtener usuario completo
+        Usuario usuario = usuarioService.obtenerUsuarioPorDni(dni);
         if (usuario == null) {
-            return "redirect:/login"; // Redirige a login si no se encuentra el usuario
+            return "redirect:/login";
         }
-
         Long userId = usuario.getId();
 
-        // Inicializar ejercicios pendientes para el usuario solo si no existen (para usuarios nuevos)
-        ejercicioService.inicializarEjerciciosPendientesParaUsuario(userId);
-
-        // Obtener mensajes enviados por el terapeuta al paciente (utilizando MensajeDTO)
-        List<MensajeDTO> mensajes = mensajeService.obtenerMensajesPorPaciente(userId);
-
-        // Obtener notificaciones para el usuario
-        List<NotificacionDTO> notificaciones = mensajeService.obtenerNotificacionesUsuario(userId);
-
-        // Contar notificaciones no leídas
-        long sinLeerCount = notificaciones.stream()
-                .filter(notificacion -> !notificacion.isLeido())
-                .count();
-
-        // Obtener SOLO ejercicios pendientes (no realizados)
+        // 3. Obtener SOLO ejercicios asignados por el admin/terapeuta
         List<Ejercicio> ejerciciosPendientes = ejercicioService.obtenerEjerciciosNoRealizadosPorUsuario(userId);
 
-        // Pasar el nombre del usuario (no solo el username)
+        // 4. Notificaciones y mensajes
+        List<MensajeDTO> mensajes = mensajeService.obtenerMensajesPorPaciente(userId);
+        List<NotificacionDTO> notificaciones = mensajeService.obtenerNotificacionesUsuario(userId);
+        long sinLeerCount = notificaciones.stream().filter(n -> !n.isLeido()).count();
+
+        // 5. Atributos para la vista
         model.addAttribute("nombre", usuario.getNombre() + " " + usuario.getApellido());
-        model.addAttribute("mensajes", mensajes); // Pasar los mensajes al modelo
+        model.addAttribute("mensajes", mensajes);
         model.addAttribute("notificaciones", notificaciones);
         model.addAttribute("notificacionesSinLeer", sinLeerCount);
         model.addAttribute("ejerciciosPendientes", ejerciciosPendientes);
+        model.addAttribute("successMessage", "Bienvenido " + usuario.getNombre() + ", sesión iniciada correctamente.");
 
-        return "home"; // Retorna la vista home.html con todos los datos cargados
+        return "home"; // templates/home.html
     }
 }
